@@ -1,8 +1,0 @@
-{
-    "require": {
-        "ext-phar": "*"
-    },
-    "conflict": {
-        "ext-pdo" : "*"
-    }
-}

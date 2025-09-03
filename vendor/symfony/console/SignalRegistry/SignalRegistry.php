@@ -34,12 +34,20 @@ final class SignalRegistry
 
         $this->signalHandlers[$signal][] = $signalHandler;
 
-        pcntl_signal($signal, $this->handle(...));
+        pcntl_signal($signal, [$this, 'handle']);
     }
 
     public static function isSupported(): bool
     {
-        return \function_exists('pcntl_signal');
+        if (!\function_exists('pcntl_signal')) {
+            return false;
+        }
+
+        if (\in_array('pcntl_signal', explode(',', \ini_get('disable_functions')))) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -53,13 +61,5 @@ final class SignalRegistry
             $hasNext = $i !== $count - 1;
             $signalHandler($signal, $hasNext);
         }
-    }
-
-    /**
-     * @internal
-     */
-    public function scheduleAlarm(int $seconds): void
-    {
-        pcntl_alarm($seconds);
     }
 }

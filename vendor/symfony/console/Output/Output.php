@@ -17,95 +17,125 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 /**
  * Base class for output classes.
  *
- * There are six levels of verbosity:
+ * There are five levels of verbosity:
  *
  *  * normal: no option passed (normal output)
  *  * verbose: -v (more output)
  *  * very verbose: -vv (highly extended output)
  *  * debug: -vvv (all debug output)
- *  * quiet: -q (only output errors)
- *  * silent: --silent (no output)
+ *  * quiet: -q (no output)
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
 abstract class Output implements OutputInterface
 {
     private int $verbosity;
-    private OutputFormatterInterface $formatter;
+    private $formatter;
 
     /**
      * @param int|null                      $verbosity The verbosity level (one of the VERBOSITY constants in OutputInterface)
      * @param bool                          $decorated Whether to decorate messages
      * @param OutputFormatterInterface|null $formatter Output formatter instance (null to use default OutputFormatter)
      */
-    public function __construct(?int $verbosity = self::VERBOSITY_NORMAL, bool $decorated = false, ?OutputFormatterInterface $formatter = null)
+    public function __construct(?int $verbosity = self::VERBOSITY_NORMAL, bool $decorated = false, OutputFormatterInterface $formatter = null)
     {
         $this->verbosity = $verbosity ?? self::VERBOSITY_NORMAL;
         $this->formatter = $formatter ?? new OutputFormatter();
         $this->formatter->setDecorated($decorated);
     }
 
-    public function setFormatter(OutputFormatterInterface $formatter): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setFormatter(OutputFormatterInterface $formatter)
     {
         $this->formatter = $formatter;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getFormatter(): OutputFormatterInterface
     {
         return $this->formatter;
     }
 
-    public function setDecorated(bool $decorated): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setDecorated(bool $decorated)
     {
         $this->formatter->setDecorated($decorated);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isDecorated(): bool
     {
         return $this->formatter->isDecorated();
     }
 
-    public function setVerbosity(int $level): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setVerbosity(int $level)
     {
         $this->verbosity = $level;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getVerbosity(): int
     {
         return $this->verbosity;
     }
 
-    public function isSilent(): bool
-    {
-        return self::VERBOSITY_SILENT === $this->verbosity;
-    }
-
+    /**
+     * {@inheritdoc}
+     */
     public function isQuiet(): bool
     {
         return self::VERBOSITY_QUIET === $this->verbosity;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isVerbose(): bool
     {
         return self::VERBOSITY_VERBOSE <= $this->verbosity;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isVeryVerbose(): bool
     {
         return self::VERBOSITY_VERY_VERBOSE <= $this->verbosity;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function isDebug(): bool
     {
         return self::VERBOSITY_DEBUG <= $this->verbosity;
     }
 
-    public function writeln(string|iterable $messages, int $options = self::OUTPUT_NORMAL): void
+    /**
+     * {@inheritdoc}
+     */
+    public function writeln(string|iterable $messages, int $options = self::OUTPUT_NORMAL)
     {
         $this->write($messages, true, $options);
     }
 
-    public function write(string|iterable $messages, bool $newline = false, int $options = self::OUTPUT_NORMAL): void
+    /**
+     * {@inheritdoc}
+     */
+    public function write(string|iterable $messages, bool $newline = false, int $options = self::OUTPUT_NORMAL)
     {
         if (!is_iterable($messages)) {
             $messages = [$messages];
@@ -140,5 +170,5 @@ abstract class Output implements OutputInterface
     /**
      * Writes a message to the output.
      */
-    abstract protected function doWrite(string $message, bool $newline): void;
+    abstract protected function doWrite(string $message, bool $newline);
 }

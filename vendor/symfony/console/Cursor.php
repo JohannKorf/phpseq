@@ -18,16 +18,15 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class Cursor
 {
-    /** @var resource */
+    private $output;
     private $input;
 
     /**
      * @param resource|null $input
      */
-    public function __construct(
-        private OutputInterface $output,
-        $input = null,
-    ) {
+    public function __construct(OutputInterface $output, $input = null)
+    {
+        $this->output = $output;
         $this->input = $input ?? (\defined('STDIN') ? \STDIN : fopen('php://input', 'r+'));
     }
 
@@ -36,7 +35,7 @@ final class Cursor
      */
     public function moveUp(int $lines = 1): static
     {
-        $this->output->write(\sprintf("\x1b[%dA", $lines));
+        $this->output->write(sprintf("\x1b[%dA", $lines));
 
         return $this;
     }
@@ -46,7 +45,7 @@ final class Cursor
      */
     public function moveDown(int $lines = 1): static
     {
-        $this->output->write(\sprintf("\x1b[%dB", $lines));
+        $this->output->write(sprintf("\x1b[%dB", $lines));
 
         return $this;
     }
@@ -56,7 +55,7 @@ final class Cursor
      */
     public function moveRight(int $columns = 1): static
     {
-        $this->output->write(\sprintf("\x1b[%dC", $columns));
+        $this->output->write(sprintf("\x1b[%dC", $columns));
 
         return $this;
     }
@@ -66,7 +65,7 @@ final class Cursor
      */
     public function moveLeft(int $columns = 1): static
     {
-        $this->output->write(\sprintf("\x1b[%dD", $columns));
+        $this->output->write(sprintf("\x1b[%dD", $columns));
 
         return $this;
     }
@@ -76,7 +75,7 @@ final class Cursor
      */
     public function moveToColumn(int $column): static
     {
-        $this->output->write(\sprintf("\x1b[%dG", $column));
+        $this->output->write(sprintf("\x1b[%dG", $column));
 
         return $this;
     }
@@ -86,7 +85,7 @@ final class Cursor
      */
     public function moveToPosition(int $column, int $row): static
     {
-        $this->output->write(\sprintf("\x1b[%d;%dH", $row + 1, $column));
+        $this->output->write(sprintf("\x1b[%d;%dH", $row + 1, $column));
 
         return $this;
     }
@@ -184,7 +183,11 @@ final class Cursor
     {
         static $isTtySupported;
 
-        if (!$isTtySupported ??= '/' === \DIRECTORY_SEPARATOR && stream_isatty(\STDOUT)) {
+        if (null === $isTtySupported && \function_exists('proc_open')) {
+            $isTtySupported = (bool) @proc_open('echo 1 >/dev/null', [['file', '/dev/tty', 'r'], ['file', '/dev/tty', 'w'], ['file', '/dev/tty', 'w']], $pipes);
+        }
+
+        if (!$isTtySupported) {
             return [1, 1];
         }
 
@@ -195,7 +198,7 @@ final class Cursor
 
         $code = trim(fread($this->input, 1024));
 
-        shell_exec(\sprintf('stty %s', $sttyMode));
+        shell_exec(sprintf('stty %s', $sttyMode));
 
         sscanf($code, "\033[%d;%dR", $row, $col);
 

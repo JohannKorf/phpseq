@@ -1,0 +1,43 @@
+title: phUML
+subTitle: phUML is a fully automatic UML diagram generator
+baseUrl: https://montealegreluis.com/phuml
+template:
+  url: https://github.com/CouscousPHP/Template-Light
+  index: index.md
+
+github:
+  user: MontealegreLuis
+  repo: phuml
+
+exclude:
+  - tests
+
+menu:
+  items:
+    installation:
+      text: Installation
+      relativeUrl: docs/installation.html
+    types:
+      text: Type information
+      relativeUrl: docs/types.html
+    format:
+      text: Diagram format
+      relativeUrl: docs/format.html
+    class_diagram:
+      text: Generate a class diagram
+      relativeUrl: docs/class-diagram.html
+    statistics:
+      text: Generate statistics
+      relativeUrl: docs/statistics.html
+    dot_file:
+      text: Generate a DOT file
+      relativeUrl: docs/dot-file.html
+    contributing:
+      text: Contributing
+      relativeUrl: contributing.html
+    conduct:
+      text: Code of conduct
+      relativeUrl: code-of-conduct.html
+    changelog:
+      text: Changelog
+      relativeUrl: changelog.html

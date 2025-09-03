@@ -16,21 +16,33 @@ use Symfony\Component\Console\Command\Command;
 
 final class CommandIsSuccessful extends Constraint
 {
+    /**
+     * {@inheritdoc}
+     */
     public function toString(): string
     {
         return 'is successful';
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function matches($other): bool
     {
         return Command::SUCCESS === $other;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function failureDescription($other): string
     {
         return 'the command '.$this->toString();
     }
 
+    /**
+     * {@inheritdoc}
+     */
     protected function additionalFailureDescription($other): string
     {
         $mapping = [
@@ -38,6 +50,6 @@ final class CommandIsSuccessful extends Constraint
             Command::INVALID => 'Command was invalid.',
         ];
 
-        return $mapping[$other] ?? \sprintf('Command returned exit status %d.', $other);
+        return $mapping[$other] ?? sprintf('Command returned exit status %d.', $other);
     }
 }

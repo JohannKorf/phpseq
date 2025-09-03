@@ -14,7 +14,6 @@ namespace Symfony\Component\Console\Helper;
 use Symfony\Component\Console\Descriptor\DescriptorInterface;
 use Symfony\Component\Console\Descriptor\JsonDescriptor;
 use Symfony\Component\Console\Descriptor\MarkdownDescriptor;
-use Symfony\Component\Console\Descriptor\ReStructuredTextDescriptor;
 use Symfony\Component\Console\Descriptor\TextDescriptor;
 use Symfony\Component\Console\Descriptor\XmlDescriptor;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
@@ -39,7 +38,6 @@ class DescriptorHelper extends Helper
             ->register('xml', new XmlDescriptor())
             ->register('json', new JsonDescriptor())
             ->register('md', new MarkdownDescriptor())
-            ->register('rst', new ReStructuredTextDescriptor())
         ;
     }
 
@@ -52,7 +50,7 @@ class DescriptorHelper extends Helper
      *
      * @throws InvalidArgumentException when the given format is not supported
      */
-    public function describe(OutputInterface $output, ?object $object, array $options = []): void
+    public function describe(OutputInterface $output, ?object $object, array $options = [])
     {
         $options = array_merge([
             'raw_text' => false,
@@ -60,7 +58,7 @@ class DescriptorHelper extends Helper
         ], $options);
 
         if (!isset($this->descriptors[$options['format']])) {
-            throw new InvalidArgumentException(\sprintf('Unsupported format "%s".', $options['format']));
+            throw new InvalidArgumentException(sprintf('Unsupported format "%s".', $options['format']));
         }
 
         $descriptor = $this->descriptors[$options['format']];
@@ -79,6 +77,9 @@ class DescriptorHelper extends Helper
         return $this;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getName(): string
     {
         return 'descriptor';

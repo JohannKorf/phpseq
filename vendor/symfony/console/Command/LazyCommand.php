@@ -14,8 +14,6 @@ namespace Symfony\Component\Console\Command;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Completion\CompletionInput;
 use Symfony\Component\Console\Completion\CompletionSuggestions;
-use Symfony\Component\Console\Completion\Suggestion;
-use Symfony\Component\Console\Helper\HelperInterface;
 use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Input\InputInterface;
@@ -26,22 +24,18 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class LazyCommand extends Command
 {
-    private \Closure|Command $command;
+    private $command;
+    private ?bool $isEnabled;
 
-    public function __construct(
-        string $name,
-        array $aliases,
-        string $description,
-        bool $isHidden,
-        \Closure $commandFactory,
-        private ?bool $isEnabled = true,
-    ) {
+    public function __construct(string $name, array $aliases, string $description, bool $isHidden, \Closure $commandFactory, ?bool $isEnabled = true)
+    {
         $this->setName($name)
             ->setAliases($aliases)
             ->setHidden($isHidden)
             ->setDescription($description);
 
         $this->command = $commandFactory;
+        $this->isEnabled = $isEnabled;
     }
 
     public function ignoreValidationErrors(): void
@@ -49,7 +43,7 @@ final class LazyCommand extends Command
         $this->getCommand()->ignoreValidationErrors();
     }
 
-    public function setApplication(?Application $application): void
+    public function setApplication(Application $application = null): void
     {
         if ($this->command instanceof parent) {
             $this->command->setApplication($application);
@@ -114,22 +108,16 @@ final class LazyCommand extends Command
         return $this->getCommand()->getNativeDefinition();
     }
 
-    /**
-     * @param array|\Closure(CompletionInput,CompletionSuggestions):list<string|Suggestion> $suggestedValues The values used for input completion
-     */
-    public function addArgument(string $name, ?int $mode = null, string $description = '', mixed $default = null, array|\Closure $suggestedValues = []): static
+    public function addArgument(string $name, int $mode = null, string $description = '', mixed $default = null): static
     {
-        $this->getCommand()->addArgument($name, $mode, $description, $default, $suggestedValues);
+        $this->getCommand()->addArgument($name, $mode, $description, $default);
 
         return $this;
     }
 
-    /**
-     * @param array|\Closure(CompletionInput,CompletionSuggestions):list<string|Suggestion> $suggestedValues The values used for input completion
-     */
-    public function addOption(string $name, string|array|null $shortcut = null, ?int $mode = null, string $description = '', mixed $default = null, array|\Closure $suggestedValues = []): static
+    public function addOption(string $name, string|array $shortcut = null, int $mode = null, string $description = '', mixed $default = null): static
     {
-        $this->getCommand()->addOption($name, $shortcut, $mode, $description, $default, $suggestedValues);
+        $this->getCommand()->addOption($name, $shortcut, $mode, $description, $default);
 
         return $this;
     }
@@ -175,7 +163,7 @@ final class LazyCommand extends Command
         return $this->getCommand()->getUsages();
     }
 
-    public function getHelper(string $name): HelperInterface
+    public function getHelper(string $name): mixed
     {
         return $this->getCommand()->getHelper($name);
     }

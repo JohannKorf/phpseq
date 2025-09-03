@@ -29,7 +29,10 @@ class BufferedOutput extends Output
         return $content;
     }
 
-    protected function doWrite(string $message, bool $newline): void
+    /**
+     * {@inheritdoc}
+     */
+    protected function doWrite(string $message, bool $newline)
     {
         $this->buffer .= $message;
 

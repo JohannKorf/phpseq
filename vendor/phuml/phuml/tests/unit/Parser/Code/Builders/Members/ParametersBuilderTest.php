@@ -1,0 +1,33 @@
+<?php declare(strict_types=1);
+/**
+ * This source file is subject to the license that is bundled with this package in the file LICENSE.
+ */
+
+namespace PhUml\Parser\Code\Builders\Members;
+
+use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Param;
+use PHPUnit\Framework\TestCase;
+use PhUml\Code\UseStatements;
+use PhUml\Parser\Code\Builders\ParameterTagFilterFactory;
+use PhUml\TestBuilders\A;
+
+final class ParametersBuilderTest extends TestCase
+{
+    /** @test */
+    function it_parses_multiple_method_parameters()
+    {
+        $parsedParameters = [
+            new Param(new Variable('page'), null, 'int', true),
+            new Param(new Variable('size'), null, 'int'),
+            new Param(new Variable('items'), null, 'int', false, true),
+        ];
+        $builder = new ParametersBuilder(A::typeBuilderBuilder()->build(), new ParameterTagFilterFactory());
+
+        $parameters = $builder->build($parsedParameters, null, new UseStatements([]));
+
+        $this->assertSame('&$page: int', $parameters[0]->__toString());
+        $this->assertSame('$size: int', $parameters[1]->__toString());
+        $this->assertSame('...$items: int', $parameters[2]->__toString());
+    }
+}

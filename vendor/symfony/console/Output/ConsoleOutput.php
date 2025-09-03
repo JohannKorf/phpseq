@@ -29,7 +29,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
  */
 class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
 {
-    private OutputInterface $stderr;
+    private $stderr;
     private array $consoleSectionOutputs = [];
 
     /**
@@ -37,7 +37,7 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
      * @param bool|null                     $decorated Whether to decorate messages (null for auto-guessing)
      * @param OutputFormatterInterface|null $formatter Output formatter instance (null to use default OutputFormatter)
      */
-    public function __construct(int $verbosity = self::VERBOSITY_NORMAL, ?bool $decorated = null, ?OutputFormatterInterface $formatter = null)
+    public function __construct(int $verbosity = self::VERBOSITY_NORMAL, bool $decorated = null, OutputFormatterInterface $formatter = null)
     {
         parent::__construct($this->openOutputStream(), $verbosity, $decorated, $formatter);
 
@@ -64,30 +64,45 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
         return new ConsoleSectionOutput($this->getStream(), $this->consoleSectionOutputs, $this->getVerbosity(), $this->isDecorated(), $this->getFormatter());
     }
 
-    public function setDecorated(bool $decorated): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setDecorated(bool $decorated)
     {
         parent::setDecorated($decorated);
         $this->stderr->setDecorated($decorated);
     }
 
-    public function setFormatter(OutputFormatterInterface $formatter): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setFormatter(OutputFormatterInterface $formatter)
     {
         parent::setFormatter($formatter);
         $this->stderr->setFormatter($formatter);
     }
 
-    public function setVerbosity(int $level): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setVerbosity(int $level)
     {
         parent::setVerbosity($level);
         $this->stderr->setVerbosity($level);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function getErrorOutput(): OutputInterface
     {
         return $this->stderr;
     }
 
-    public function setErrorOutput(OutputInterface $error): void
+    /**
+     * {@inheritdoc}
+     */
+    public function setErrorOutput(OutputInterface $error)
     {
         $this->stderr = $error;
     }

@@ -27,16 +27,19 @@ use function sprintf;
  * we cannot simply throw exceptions at all time because the exceptions will break the creation of a
  * docklock. Just silently ignore the exceptions is not an option because the user as an issue to fix.
  *
- * This tag holds that error information until a using application is able to display it. The object will just behave
+ * This tag holds that error information until a using application is able to display it. The object wil just behave
  * like any normal tag. So the normal application flow will not break.
  */
 final class InvalidTag implements Tag
 {
-    private string $name;
+    /** @var string */
+    private $name;
 
-    private string $body;
+    /** @var string */
+    private $body;
 
-    private ?Throwable $throwable = null;
+    /** @var Throwable|null */
+    private $throwable;
 
     private function __construct(string $name, string $body)
     {
@@ -77,9 +80,7 @@ final class InvalidTag implements Tag
     private function flattenExceptionBacktrace(Throwable $exception): void
     {
         $traceProperty = (new ReflectionClass(Exception::class))->getProperty('trace');
-        if (PHP_VERSION_ID < 80100) {
-            $traceProperty->setAccessible(true);
-        }
+        $traceProperty->setAccessible(true);
 
         do {
             $trace = $exception->getTrace();
@@ -98,9 +99,7 @@ final class InvalidTag implements Tag
             $exception = $exception->getPrevious();
         } while ($exception !== null);
 
-        if (PHP_VERSION_ID < 80100) {
-            $traceProperty->setAccessible(false);
-        }
+        $traceProperty->setAccessible(false);
     }
 
     /**

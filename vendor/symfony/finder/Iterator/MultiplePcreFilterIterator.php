@@ -23,13 +23,13 @@ namespace Symfony\Component\Finder\Iterator;
  */
 abstract class MultiplePcreFilterIterator extends \FilterIterator
 {
-    protected array $matchRegexps = [];
-    protected array $noMatchRegexps = [];
+    protected $matchRegexps = [];
+    protected $noMatchRegexps = [];
 
     /**
-     * @param \Iterator<TKey, TValue> $iterator        The Iterator to filter
-     * @param string[]                $matchPatterns   An array of patterns that need to match
-     * @param string[]                $noMatchPatterns An array of patterns that need to not match
+     * @param \Iterator $iterator        The Iterator to filter
+     * @param string[]  $matchPatterns   An array of patterns that need to match
+     * @param string[]  $noMatchPatterns An array of patterns that need to not match
      */
     public function __construct(\Iterator $iterator, array $matchPatterns, array $noMatchPatterns)
     {
@@ -80,7 +80,11 @@ abstract class MultiplePcreFilterIterator extends \FilterIterator
      */
     protected function isRegex(string $str): bool
     {
-        $availableModifiers = 'imsxuADUn';
+        $availableModifiers = 'imsxuADU';
+
+        if (\PHP_VERSION_ID >= 80200) {
+            $availableModifiers .= 'n';
+        }
 
         if (preg_match('/^(.{3,}?)['.$availableModifiers.']*$/', $str, $m)) {
             $start = substr($m[1], 0, 1);
