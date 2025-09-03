@@ -1,5 +1,5 @@
 {
     "require": {
-        "phuml/phuml": "^6.1"
+        "phuml/phuml": "*"
     }
 }

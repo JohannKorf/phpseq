@@ -1,3 +1,0 @@
-{% apply spaceless %}
-"{{ element.definition.identifier }}" [label=<{% include 'uml/' ~ element.labelTemplate ~ '.html.twig' with { 'definition': element.definition, 'style': style } %}> shape=plaintext color="{{ theme.lineColor }}"]
-{% endapply %}
