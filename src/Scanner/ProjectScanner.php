@@ -2,65 +2,77 @@
 
 namespace PhpSeq\Scanner;
 
-use PhpParser\Error;
-use PhpParser\Lexer;
-use PhpParser\NodeTraverser;
-use PhpParser\NodeVisitor\NameResolver;
 use PhpParser\ParserFactory;
-use PhpSeq\Model\CallGraph;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
-use SplFileInfo;
+use PhpParser\NodeTraverser;
+use PhpParser\Error;
 
-final class ProjectScanner
+class ProjectScanner
 {
-    public function __construct(
-        private readonly string $srcDir,
-        private readonly bool $includeVendor = false,
-        private readonly int $maxNodes = 500
-    ) {}
+    private string $src;
 
-    public function scan(): CallGraph
+    public function __construct(string $src)
+    {
+        $this->src = $src;
+    }
+
+    public function scan(?array $entries = null, int $depth = 3): CallGraph
     {
         $graph = new CallGraph();
-        $lexer = new Lexer\Emulative(['usedAttributes' => ['comments', 'startLine', 'endLine']]);
-        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7, $lexer);
 
-        $rii = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($this->srcDir));
-        $phpFiles = new RegexIterator($rii, '/^.+\.php$/i', RegexIterator::GET_MATCH);
+        $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
 
-        $count = 0;
-        foreach ($phpFiles as $files) {
-            foreach ($files as $file) {
-                if (!$this->includeVendor() && str_contains($file, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR)) {
-                    continue;
+        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->src));
+        foreach ($rii as $file) {
+            if (!$file->isFile() || $file->getExtension() !== 'php') {
+                continue;
+            }
+
+            $code = file_get_contents($file->getPathname());
+            try {
+                $ast = $parser->parse($code);
+            } catch (Error $e) {
+                continue;
+            }
+
+            if (!$ast) continue;
+
+            $className = null;
+            foreach ($ast as $node) {
+                if ($node instanceof \PhpParser\Node\Stmt\Namespace_) {
+                    foreach ($node->stmts as $stmt) {
+                        if ($stmt instanceof \PhpParser\Node\Stmt\Class_) {
+                            $className = ($node->name ? $node->name->toString() . '\\' : '') . $stmt->name->toString();
+                        }
+                    }
                 }
-                $code = @file_get_contents($file);
-                if ($code === false) continue;
-                try {
-                    $ast = $parser->parse($code);
-                } catch (Error $e) {
-                    // skip broken files
-                    continue;
+            }
+            if (!$className) continue;
+
+            $collector = new MethodCallCollector($className);
+            $traverser = new NodeTraverser();
+            $traverser->addVisitor($collector);
+            $traverser->traverse($ast);
+
+            foreach ($collector->getMethods() as $method => $vis) {
+                $graph->addMethod($className, $method, $vis);
+            }
+            foreach ($collector->getCalls() as $call) {
+                $graph->addCall($call['from'], $call['to']);
+            }
+        }
+
+        if ($entries) {
+            foreach ($entries as $ep) {
+                $graph->addEntryPoint($ep);
+            }
+        } else {
+            foreach ($graph->getAllMethods() as $full => $vis) {
+                if ($vis === 'public') {
+                    $graph->addEntryPoint($full);
                 }
-
-                $traverser = new NodeTraverser();
-                $traverser->addVisitor(new NameResolver());
-                $collector = new MethodCallCollector($graph, $file);
-                $traverser->addVisitor($collector);
-                $traverser->traverse($ast ?? []);
-
-                $count++;
-                if ($count > $this->maxNodes) break 2;
             }
         }
 
         return $graph;
-    }
-
-    private function includeVendor(): bool
-    {
-        return $this->includeVendor;
     }
 }
