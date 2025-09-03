@@ -4,3 +4,4 @@ vendor
 phpseq.phar
 diagrams
 bin
+*.phar
