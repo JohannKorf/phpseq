@@ -1,0 +1,1 @@
+find . -maxdepth 1 -name "*.json" | xargs sed -i -r -e 's/([\^|v]*[0-9]+\.[0-9]+\.[0-9]+(\.[0-9]*)*)/\*/g'
