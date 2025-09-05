@@ -3,5 +3,3 @@
 vendor
 phpseq.phar
 diagrams
-*.phar
-composer.lock
