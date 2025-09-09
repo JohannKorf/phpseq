@@ -1,12 +1,19 @@
-<?php
+<?php declare(strict_types=1);
 namespace PhpSeq\CLI;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 
-class GenerateCommand extends Command
+#[AsCommand(
+    name: 'phpseq:generate',
+    description: 'Generate a PlantUML sequence diagram',
+    aliases: ['generate']
+)]
+
+final class GenerateCommand extends Command
 {
     // Match Symfony style with vendor prefix
     protected static $defaultName = 'phpseq:generate';

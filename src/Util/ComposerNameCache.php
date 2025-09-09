@@ -1,5 +1,4 @@
 <?php declare(strict_types=1);
-
 namespace PhpSeq\Util;
 
 final class ComposerNameCache

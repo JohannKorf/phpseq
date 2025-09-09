@@ -10,5 +10,5 @@ use PhpSeq\CLI\ComponentsCommand;
 $application = new Application('phpseq', '1.1.0');
 $application->add(new GenerateCommand());
 $application->add(new ComponentsCommand());
-$application->setDefaultCommand('phpseq:generate', true);
+$application->setDefaultCommand('phpseq:generate', false);
 $application->run();
