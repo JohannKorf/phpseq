@@ -1,12 +1,12 @@
 {
   "main": "bin/phpseq",
-  "output": "phpseq.phar",
+  "output": "phpseq-0.5.1.phar",
   "chmod": "0755",
   "compression": "GZ",
   "stub": true,
   "shebang": "#!/usr/bin/env php",
   "directories": [
-    "src", 
+    "src",
     "vendor"
   ],
   "exclude-dev-files": true

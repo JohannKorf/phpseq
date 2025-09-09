@@ -6,11 +6,8 @@ class B
 {
     public function work(): void
     {
+        C::staticAssist();
         $c = new C();
         $c->assist();
-    }
-
-    private function secret(): void
-    {
     }
 }

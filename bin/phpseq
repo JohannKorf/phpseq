@@ -3,10 +3,12 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use PhpSeq\CLI\GenerateCommand;
 use Symfony\Component\Console\Application;
+use PhpSeq\CLI\GenerateCommand;
+use PhpSeq\CLI\ComponentsCommand;
 
-$application = new Application('phpseq', '0.2.0');
+$application = new Application('phpseq', '1.1.0');
 $application->add(new GenerateCommand());
+$application->add(new ComponentsCommand());
 $application->setDefaultCommand('phpseq:generate', true);
 $application->run();

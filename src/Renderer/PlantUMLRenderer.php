@@ -4,53 +4,51 @@ namespace PhpSeq\Renderer;
 
 use PhpSeq\Scanner\CallGraph;
 
-class PlantUMLRenderer
+final class PlantUMLRenderer
 {
-    public function render(CallGraph $graph, string $entry, int $depth = 3): string
+    public function renderMethod(CallGraph $graph, string $method, int $depth = 3): string
     {
-        $out = ["@startuml", "autonumber"];
+        $alias = str_replace(['\\','::'], '_', $method);
+        $title = 'Sequence Diagram for ' . $method;
+        $caption = 'Generated on ' . date('Y-m-d H:i:s');
 
-        $methods = $graph->getAllMethods();
-        $classes = [];
-        foreach ($methods as $m => $vis) {
-            [$cls, $method] = explode('::', $m);
-            $classes[$cls][$method] = $vis;
-        }
-
-        foreach ($classes as $cls => $ms) {
-            $out[] = "participant \"$cls\" as " . $this->alias($cls) . " << (C,#ADD1B2) >>";
-            foreach ($ms as $method => $vis) {
-                $sym = $vis === 'public' ? '+' : ($vis === 'protected' ? '#' : '-');
-                $out[] = "note right of " . $this->alias($cls) . " : " . $sym . $method . "()";
-            }
-        }
+        $out = ["@startuml $alias", "title " . $title, "autonumber"];
 
         $visited = [];
-        $this->renderCalls($graph, $entry, $depth, $out, $visited);
+        $calls = [];
+        $this->walk($graph, $method, $depth, $visited, $calls);
 
-        $out[] = "@enduml";
-        return implode("\n", $out);
+        $classes = [];
+        foreach (array_keys($visited) as $m) {
+            [$cls, $meth] = explode('::', $m);
+            $classes[$cls][$meth] = $graph->getVisibility($m);
+        }
+        foreach ($classes as $cls => $ms) {
+            $out[] = 'participant "' . $cls . '" as ' . $this->alias($cls) . ' << (C,#ADD1B2) >>';
+            foreach ($ms as $mname => $vis) {
+                $sym = $vis === 'public' ? '+' : ($vis === 'protected' ? '#' : '-');
+                $out[] = 'note right of ' . $this->alias($cls) . ' : ' . $sym . $mname . '()';
+            }
+        }
+
+        foreach ($calls as [$from, $to]) {
+            [$fcls] = explode('::', $from);
+            [$tcls] = explode('::', $to);
+            $out[] = $this->alias($fcls) . ' -> ' . $this->alias($tcls) . ' : ' . $to;
+        }
+
+        $out[] = 'caption ' . $caption;
+        $out[] = '@enduml';
+        return implode("\n", $out) . "\n";
     }
 
-    private function renderCalls(CallGraph $graph, string $method, int $depth, array &$out, array &$visited): void
+    private function walk(CallGraph $graph, string $method, int $depth, array &$visited, array &$calls): void
     {
-        if ($depth <= 0 || in_array($method, $visited, true)) return;
-        $visited[] = $method;
-
-        [$cls, $meth] = explode('::', $method);
+        if ($depth < 0 || isset($visited[$method])) return;
+        $visited[$method] = true;
         foreach ($graph->getCalls($method) as $to) {
-            $target = null;
-            foreach ($graph->getAllMethods() as $m => $_) {
-                if (str_ends_with($m, '::' . $to)) {
-                    $target = $m;
-                    break;
-                }
-            }
-            if ($target) {
-                [$tcls, $tmeth] = explode('::', $target);
-                $out[] = $this->alias($cls) . " -> " . $this->alias($tcls) . " : " . $target;
-                $this->renderCalls($graph, $target, $depth - 1, $out, $visited);
-            }
+            $calls[] = [$method, $to];
+            $this->walk($graph, $to, $depth - 1, $visited, $calls);
         }
     }
 

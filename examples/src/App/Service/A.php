@@ -4,15 +4,15 @@ namespace App\Service;
 
 class A
 {
-    public function entry(): void
+    private B $b;
+    public function __construct(B $b)
     {
-        $b = new B();
-        $b->work();
+        $this->b = $b;
     }
 
-    protected function helper(): void
+    public function entry(): void
     {
-        $c = new C();
-        $c->assist();
+        $this->b->work();
+        (new C())->assist();
     }
 }

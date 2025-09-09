@@ -4,7 +4,6 @@ namespace App\Service;
 
 class C
 {
-    public function assist(): void
-    {
-    }
+    public static function staticAssist(): void {}
+    public function assist(): void {}
 }

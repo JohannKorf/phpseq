@@ -2,11 +2,16 @@
 
 namespace PhpSeq\Scanner;
 
-class CallGraph
+final class CallGraph
 {
-    private array $methods = []; // class::method => visibility
-    private array $calls = [];   // from => [to]
-    private array $entries = [];
+    /** @var array<string,string> */
+    private array $methods = []; // Class::method => visibility
+
+    /** @var array<string,list<string>> */
+    private array $edges = [];   // from => list of to
+
+    /** @var array<string,string> */
+    private array $classFiles = []; // Class => file path
 
     public function addMethod(string $class, string $method, string $visibility): void
     {
@@ -15,31 +20,34 @@ class CallGraph
 
     public function addCall(string $from, string $to): void
     {
-        $this->calls[$from][] = $to;
+        $this->edges[$from][] = $to;
     }
 
-    public function addEntryPoint(string $method): void
+    public function mapClassToFile(string $class, string $file): void
     {
-        $this->entries[] = $method;
+        $this->classFiles[$class] = $file;
     }
 
-    public function getEntryPoints(): array
-    {
-        return array_unique($this->entries);
-    }
-
+    /** @return array<string,string> */
     public function getAllMethods(): array
     {
         return $this->methods;
     }
 
+    /** @return list<string> */
+    public function getCalls(string $from): array
+    {
+        return $this->edges[$from] ?? [];
+    }
+
+    /** @return array<string,string> */
+    public function getAllClassFiles(): array
+    {
+        return $this->classFiles;
+    }
+
     public function getVisibility(string $method): string
     {
         return $this->methods[$method] ?? 'public';
-    }
-
-    public function getCalls(string $from): array
-    {
-        return $this->calls[$from] ?? [];
     }
 }

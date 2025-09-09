@@ -1,15 +1,21 @@
 {
   "name": "johannkorf/phpseq",
+  "version": "0.5.1",
   "description": "PHP source scanner to generate PlantUML sequence diagrams",
   "require": {
     "php": ">=8.2",
-    "humbug/box": "4.3.8"
+    "humbug/box": "4.3.8",
+    "symfony/console": "6.4.25"
   },
   "autoload": {
     "psr-4": {
       "PhpSeq\\": "src/"
     }
   },
-  "include-path": ["src"],
-  "bin": ["bin/phpseq"]
+  "include-path": [
+    "src"
+  ],
+  "bin": [
+    "bin/phpseq"
+  ]
 }
