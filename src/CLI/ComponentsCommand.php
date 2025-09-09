@@ -3,6 +3,8 @@
 namespace PhpSeq\CLI;
 
 use PhpSeq\Scanner\ProjectScanner;
+use PhpSeq\Scanner\JsHttpCallScanner;
+use PhpSeq\Scanner\ApiEndpointScanner;
 use PhpSeq\Renderer\ComponentUMLRenderer;
 use PhpSeq\Analysis\ComponentGraph;
 use PhpSeq\Util\ComposerNameCache;
@@ -25,8 +27,10 @@ final class ComponentsCommand extends Command
             ->addOption('max-edges', null, InputOption::VALUE_OPTIONAL, 'Limit number of edges (by weight/order)', '')
             ->addOption('repo-src', null, InputOption::VALUE_OPTIONAL, 'Comma-separated list of per-repo source dirs (e.g. src,app,lib)', '')
             ->addOption('exclude', null, InputOption::VALUE_OPTIONAL, 'Comma-separated glob patterns to exclude', '')
-            ->addOption('prefer-composer-name', null, InputOption::VALUE_NONE, 'Use composer.json name if available for component label')
-            ->addOption('drilldown-dir', null, InputOption::VALUE_REQUIRED, 'Directory to write per-component diagrams', 'components');
+            ->addOption('component-drill', null, InputOption::VALUE_OPTIONAL, 'Alias of --drilldown-dir; filter edges to/from this component', '')
+            ->addOption('js-scan', null, InputOption::VALUE_OPTIONAL, 'Path to a JS/TS webapp repo to scan for HTTP calls (e.g. React/Next).', '')
+            ->addOption('api-base-var', null, InputOption::VALUE_OPTIONAL, 'Env var used for API base URL inside the webapp (axios baseURL).', 'NEXT_PUBLIC_API_URL')
+            ->addOption('assume-api-component', null, InputOption::VALUE_OPTIONAL, 'Component name to map web calls to (defaults to the API repo name if detected).', '')
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
