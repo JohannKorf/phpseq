@@ -38,3 +38,45 @@ The PHAR build produces a standalone, versioned binary (e.g. `phpseq-0.5.1.phar`
 * Static analysis only (no runtime). Dynamic dispatch on variables, magic calls, and reflection may be unresolved.
 * Names are resolved at **class-level participants** for simplicity.
 * You can tweak filters and renderer in `src/` to suit your codebase.
+
+## Project Folder Structure
+.
+├── bin
+│   └── phpseq
+├── box.json
+├── CHANGELOG.md
+├── composer.json
+├── composer.lock
+├── examples
+│   ├── root
+│   │   ├── Checkout
+│   │   │   └── src
+│   │   ├── Inventory
+│   │   │   └── app
+│   │   └── Payments
+│   │       └── lib
+│   └── src
+│       └── App
+│           ├── Requests
+│           ├── Rules
+│           └── Service
+├── php.ini
+├── README.md
+├── release.yml
+├── src
+│   ├── Analysis
+│   │   └── ComponentGraph.php
+│   ├── CLI
+│   │   ├── ComponentsCommand.php
+│   │   └── GenerateCommand.php
+│   ├── Renderer
+│   │   ├── ComponentUMLRenderer.php
+│   │   └── PlantUMLRenderer.php
+│   ├── Scanner
+│   │   ├── ApiEndpointScanner.php
+│   │   ├── CallGraph.php
+│   │   ├── JsHttpCallScanner.php
+│   │   ├── MethodCallCollector.php
+│   │   └── ProjectScanner.php
+│   └── Util
+│       └── ComposerNameCache.php
