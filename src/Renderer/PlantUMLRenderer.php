@@ -5,7 +5,7 @@ use PhpSeq\Scanner\CallGraph;
 
 final class PlantUMLRenderer
 {
-    public function renderMethod(CallGraph $graph, string $method, int $depth = 3): string
+    public function render(CallGraph $graph, string $method, int $depth = 3): string
     {
         $alias = str_replace(['\\','::'], '_', $method);
         $title = 'Sequence Diagram for ' . $method;

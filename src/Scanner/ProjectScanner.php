@@ -1,4 +1,5 @@
 <?php declare(strict_types=1);
+
 namespace PhpSeq\Scanner;
 
 use PhpParser\ParserFactory;
@@ -26,6 +27,14 @@ final class ProjectScanner
         $parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
 
         $rootIter = new \FilesystemIterator($this->root, \FilesystemIterator::SKIP_DOTS);
+        $rootDir = $this->expandPath($this->root);
+        if (!is_dir($rootDir)) {
+            throw new \RuntimeException(sprintf(
+                "Source root '%s' does not exist (expanded to '%s').",
+                $this->root, $rootDir
+            ));
+        }
+        $rootIter = new \FilesystemIterator($rootDir, \FilesystemIterator::SKIP_DOTS);
         foreach ($rootIter as $repoDir) {
             if (!$repoDir->isDir()) continue;
 
@@ -93,4 +102,30 @@ final class ProjectScanner
         }
         return false;
     }
+
+    /**
+    * Expand ~, $VARS, ${VARS}, strip file:// and normalize.
+    */
+    private function expandPath(string $path): string
+    {
+        $path = trim($path);
+        // Expand tilde
+        if ($path === '~' || str_starts_with($path, '~/')) {
+            $home = getenv('HOME') ?: getenv('USERPROFILE') ?: '';
+            if ($home !== '') {
+                $path = $home . substr($path, 1);
+            }
+        }
+        // Expand $VAR and ${VAR}
+        $path = preg_replace_callback('/\\$(\\w+)|\\$\\{([^}]+)\\}/', function ($m) {
+            $var = $m[1] ?? $m[2];
+            $val = getenv($var);
+            return $val === false ? $m[0] : $val;
+        }, $path);
+        // Strip file:// and normalize; keep non-existent paths as-is
+        $noScheme = preg_replace('#^file://#', '', $path);
+        $real = realpath($noScheme);
+        return $real !== false ? $real : $noScheme;
+    }
+
 }
