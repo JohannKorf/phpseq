@@ -4,3 +4,5 @@ vendor
 phpseq.phar
 diagrams
 tools
+uml
+components

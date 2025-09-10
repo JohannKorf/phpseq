@@ -36,12 +36,15 @@ final class ComponentsCommand extends Command
             ->addOption('drilldown-dir', null, InputOption::VALUE_REQUIRED,
                 'Directory to write per-component drilldowns (optional)')
             ->addOption(self::OPT_DRILLDOWN_ALL, null, InputOption::VALUE_NONE,
-                'Write drill-down file for every component, even if it has no edges');
+                'Write drill-down file for every component, even if it has no edges')
+            ->addOption('edge-show-endpoints', null, InputOption::VALUE_NONE,
+                'Show endpoint paths on edges (where available)')
+            ->addOption('ignore-noise', null, InputOption::VALUE_NONE,
+                'Ignore well-known noise hosts (fonts.googleapis.com, www.w3.org, etc.)');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Normalize options
         $srcRoots = $input->getOption('src') ?? [];
         if (!is_array($srcRoots)) {
             $srcRoots = array_filter(array_map('trim', explode(',', (string)$srcRoots)));
@@ -57,15 +60,16 @@ final class ComponentsCommand extends Command
             ? array_values(array_filter(array_map('trim', $excludeOpt)))
             : array_values(array_filter(array_map('trim', explode(',', (string)$excludeOpt))));
 
-        $outFile    = (string) $input->getOption('out');
-        $edgeLabel  = (string) $input->getOption('edge-label');
-        $edgeDetail = (string) $input->getOption('edge-detail');
-        $preferPkg  = (bool)   $input->getOption('prefer-composer-name');
-        $drillDir   = $input->getOption('drilldown-dir') ? (string)$input->getOption('drilldown-dir') : null;
-        $writeEmpty = (bool)   $input->getOption(self::OPT_DRILLDOWN_ALL);
+        $outFile     = (string) $input->getOption('out');
+        $edgeLabel   = (string) $input->getOption('edge-label');
+        $edgeDetail  = (string) $input->getOption('edge-detail');
+        $preferPkg   = (bool)   $input->getOption('prefer-composer-name');
+        $drillDir    = $input->getOption('drilldown-dir') ? (string)$input->getOption('drilldown-dir') : null;
+        $writeEmpty  = (bool)   $input->getOption(self::OPT_DRILLDOWN_ALL);
+        $showEndpoints = (bool) $input->getOption('edge-show-endpoints');
+        $ignoreNoise   = (bool) $input->getOption('ignore-noise');
 
-        // Use the simplified ProjectScanner (no args)
-        $scanner = new ProjectScanner();
+        $scanner = new ProjectScanner($showEndpoints, $ignoreNoise);
         $graph   = new ComponentGraph();
 
         foreach ($srcRoots as $root) {
@@ -73,13 +77,11 @@ final class ComponentsCommand extends Command
             $graph->merge($g);
         }
 
-        // Render top-level diagram
         $renderer = new ComponentUMLRenderer($preferPkg);
         $uml = $renderer->render($graph, 'Component Communications', '', $edgeLabel, $edgeDetail, null);
         file_put_contents($outFile, $uml);
         $output->writeln('<info>Wrote ' . $outFile . '</info>');
 
-        // Drill-downs
         if ($drillDir) {
             @mkdir($drillDir, 0777, true);
             foreach ($graph->getComponents() as $comp) {
