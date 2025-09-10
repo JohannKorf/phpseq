@@ -1,0 +1,5 @@
+@startuml
+title go54-admin communications
+component "go54-admin" as go54_admin
+
+@enduml

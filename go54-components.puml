@@ -1,0 +1,9 @@
+@startuml
+title Component Communications
+component "go54-api" as go54_api
+component "go54-dashboard" as go54_dashboard
+component "go54-website" as go54_website
+component "go54-admin" as go54_admin
+
+go54_website --> go54_api : 1
+@enduml

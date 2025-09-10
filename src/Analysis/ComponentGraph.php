@@ -1,51 +1,51 @@
-<?php declare(strict_types=1);
+<?php
+
 namespace PhpSeq\Analysis;
 
+/**
+ * Represents a graph of components and their communication edges.
+ */
 final class ComponentGraph
 {
-    /** @var array<string, array{classes: array<string,bool>}> */
+    /** @var array<string,bool> */
     private array $components = [];
 
-    /** @var array<string, array<string,int>> */
-    private array $edgeCounts = []; // from -> to -> total count
+    /** @var array<int,array{from:string,to:string,label:?string}> */
+    private array $edges = [];
 
-    /** @var array<string, array<string, array<string,bool>>> */
-    private array $edgeUnique = []; // from -> to -> ('ClassA::m->ClassB::n' => true)
+    /** @var array<string,int> */
+    private array $classCounts = [];
 
-    /** @var array<int, array{from:string,to:string,fromClass:string,toClass:string,fromMethod:string,toMethod:string}> */
-    private array $edgeAllPairs = []; // list of individual pairs for detailed view
-
-    public function addClassToComponent(string $component, string $class): void
+    public function addComponent(string $name): void
     {
-        if (!isset($this->components[$component])) {
-            $this->components[$component] = ['classes' => []];
+        $this->components[$name] = true;
+        if (!isset($this->classCounts[$name])) {
+            $this->classCounts[$name] = 0;
         }
-        $this->components[$component]['classes'][$class] = true;
     }
 
-    public function addEdge(string $fromComponent, string $toComponent, string $fromMethod, string $toMethod): void
+    public function addEdge(string $from, string $to, ?string $label = null): void
     {
-        if ($fromComponent === '' || $toComponent === '') return;
-        // counts
-        $this->edgeCounts[$fromComponent][$toComponent] = ($this->edgeCounts[$fromComponent][$toComponent] ?? 0) + 1;
-
-        // unique
-        $k = $fromMethod . '->' . $toMethod;
-        $this->edgeUnique[$fromComponent][$toComponent][$k] = true;
-
-        // detailed pairs
-        [$fc] = explode('::', $fromMethod, 2);
-        [$tc] = explode('::', $toMethod, 2);
-        $fm = explode('::', $fromMethod, 2)[1] ?? '';
-        $tm = explode('::', $toMethod, 2)[1] ?? '';
-        $this->edgeAllPairs[] = [
-            'from' => $fromComponent,
-            'to' => $toComponent,
-            'fromClass' => $fc,
-            'toClass' => $tc,
-            'fromMethod' => $fm,
-            'toMethod' => $tm,
+        $this->addComponent($from);
+        $this->addComponent($to);
+        $this->edges[] = [
+            'from'  => $from,
+            'to'    => $to,
+            'label' => $label,
         ];
+    }
+
+    /** Increment class count for a component */
+    public function incrementClassCount(string $component): void
+    {
+        $this->addComponent($component);
+        $this->classCounts[$component] = ($this->classCounts[$component] ?? 0) + 1;
+    }
+
+    /** Get class count for a component */
+    public function classCount(string $component): int
+    {
+        return $this->classCounts[$component] ?? 0;
     }
 
     /** @return string[] */
@@ -54,31 +54,68 @@ final class ComponentGraph
         return array_keys($this->components);
     }
 
-    public function classCount(string $component): int
+    /** @return array<int,array{from:string,to:string,label:?string}> */
+    public function getEdges(): array
     {
-        return isset($this->components[$component]) ? count($this->components[$component]['classes']) : 0;
+        return $this->edges;
     }
 
-    /** @return array<string,int> */
-    public function edgesFromCounts(string $component): array
+    public function edgeCount(): int
     {
-        return $this->edgeCounts[$component] ?? [];
+        return count($this->edges);
     }
 
-    /** @return array<string,int> */
-    public function edgesFromUniqueCounts(string $component): array
+    public function subgraphForComponent(string $component): self
     {
-        $out = [];
-        if (!isset($this->edgeUnique[$component])) return $out;
-        foreach ($this->edgeUnique[$component] as $to => $set) {
-            $out[$to] = count($set);
+        $sub = new self();
+        $sub->addComponent($component);
+        $sub->classCounts[$component] = $this->classCounts[$component] ?? 0;
+
+        foreach ($this->edges as $edge) {
+            if ($edge['from'] === $component || $edge['to'] === $component) {
+                $sub->addComponent($edge['from']);
+                $sub->addComponent($edge['to']);
+                $sub->edges[] = $edge;
+                $sub->classCounts[$edge['from']] = $this->classCounts[$edge['from']] ?? 0;
+                $sub->classCounts[$edge['to']] = $this->classCounts[$edge['to']] ?? 0;
+            }
         }
-        return $out;
+        return $sub;
     }
 
-    /** @return array<int, array{from:string,to:string,fromClass:string,toClass:string,fromMethod:string,toMethod:string}> */
-    public function allPairs(): array
+    public function merge(self $other): void
     {
-        return $this->edgeAllPairs;
+        foreach ($other->getComponents() as $c) {
+            $this->addComponent($c);
+            if (isset($other->classCounts[$c])) {
+                $this->classCounts[$c] = ($this->classCounts[$c] ?? 0) + $other->classCounts[$c];
+            }
+        }
+        foreach ($other->getEdges() as $e) {
+            $this->edges[] = $e;
+        }
     }
+
+        /**
+     * Returns edges aggregated by (from,to), with counts.
+     *
+     * @return array<int,array{from:string,to:string,count:int}>
+     */
+    public function edgesFromCounts(): array
+    {
+        $counts = [];
+        foreach ($this->edges as $edge) {
+            $key = $edge['from'] . '::' . $edge['to'];
+            if (!isset($counts[$key])) {
+                $counts[$key] = [
+                    'from'  => $edge['from'],
+                    'to'    => $edge['to'],
+                    'count' => 0,
+                ];
+            }
+            $counts[$key]['count']++;
+        }
+        return array_values($counts);
+    }
+
 }

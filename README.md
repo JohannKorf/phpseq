@@ -80,3 +80,21 @@ The PHAR build produces a standalone, versioned binary (e.g. `phpseq-0.5.1.phar`
 │   │   └── ProjectScanner.php
 │   └── Util
 │       └── ComposerNameCache.php
+
+## Repo/Components folders layout
+/home/johannkorf/Source/go54 is a root directory containing multiple repos, or referred to as components.
+/home/johannkorf/Source/go54/go54-api/ is a PHP web service that exposes end-points.
+/home/johannkorf/Source/go54/go54-website is a react application that makes calls to go54-api.
+
+johannkorf@Upsilon:~$ ls -l /home/johannkorf/Source/go54/
+total 36
+drwxrwxr-x  6 johannkorf johannkorf 18 Sep  9 11:14 go54-admin
+drwxrwxrwx 14 johannkorf johannkorf 39 Sep  9 10:23 go54-api
+drwxrwxr-x  6 johannkorf johannkorf 20 Sep  9 11:11 go54-dashboard
+drwxrwxr-x 15 johannkorf johannkorf 28 Sep  9 11:12 go54-website
+johannkorf@Upsilon:~$ 
+
+### Requirements
+I wish to see the calls between components, not classes for the components communication diagram.
+
+

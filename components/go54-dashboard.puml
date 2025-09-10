@@ -1,0 +1,5 @@
+@startuml
+title go54-dashboard communications
+component "go54-dashboard" as go54_dashboard
+
+@enduml
